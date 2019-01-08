@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>N A T U R A L ~ S E L E C T I O N</title>
+	<style type="text/css">
+		canvas {
+			border: 0px solid black;
+		}
+		body {
+			margin: 8;
+		}
+	</style>
+	<script type = "text/JavaScript">
+         <!--
+            function AutoRefresh( t ) {
+               setTimeout("location.reload(true);", t);
+            }
+         //-->
+      </script>
+</head>
+<body> <!-- onload = "JavaScript:AutoRefresh(2000)" -->
+	<h1><i>N A T U R A L ~ S E L E C T I O N</i></h1>
+<script>
+	
+// create an environment object with 8 variables.
+// create two creatures with 8 corresponding attributes
+// set the corresponding attributes to random numbers
+
+// each generation goes through the following cycle:
+// 1) survival phase: test creature's genetic abilities against environmental pressure
+//		edit creatures array to leave only those who survived
+// 2) mating: random pairings. no asexual reproduction.
+//		in the case of odd number of survivors, kill off the weakest
+//			'weakest' could be defined several ways
+//				could either be the lowest total sum of abilities
+//				or lowest mean average of abilities
+//				or could compare the greatest pressure to its corresponding ability in all creatures
+//					and eliminate the one with the lowest score
+//		children inherit parent abilities
+//		do this 'sexually' i.e. children inherit four random abilities from mum, four remaining abilities from dad
+//		genetic variation emulated by then adding -1, 0 or +1 to each ability.
+//			this will probably become a more important factor when environmental change kicks in
+
+// once this is done, create a world in which the environment changes over time
+// watch outliers come back from the brink to dominate the world!
+
+// later animate the whole thing, maybe make backround colours correspond to environment, using normalization or linear interpolation
+//	creature colours correspond with their own abilities
+// similar colours will probably be shown to corelate with passed tests 
+// survival period could be done with colliding balls: creatures collide with environment, which triggers test
+
+// give results at end: give the mean average of all creatures abilities to come up with an 'average creature'
+// or check for groupings of abilities, which could be considered speciation
+// then describe the environment they came about in
+// only describe environmental factors with scores of 6 and above
+// 6 to 7: e.g. "These creatures evolved to flourish in a sunny, oxygen rich environment"
+// 8 to 9: e.g. "... and they withstood heavy meteor showers" <- more extreme description than 6 to 7
+// some stories could explain why a creature survived even though it said 'sunny' but melanin was low, eg
+// 		this creature never evolved physical adaptations to the UV rich environment, but learned to use its electrical resistance to create a forcefield // or say it behaved differently, e.g. hid in the ground
+// as population grows, 'zoom out', have populations move into different environments
+// the creatures that have to move out should be the ones with lower mean averages than the ones who stay put
+
+let randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+
+const environment = {					// could allow user to set a 'harshness' variable
+	sunlight: randomInt(0, 9),
+	oxygen: randomInt(0, 9),
+	viscosity: randomInt(0, 9),
+	gravity: randomInt(0, 9),
+	meteors: randomInt(0, 9),
+	electricity: randomInt(0, 9),
+	carbon: randomInt(0, 9),
+	benium: randomInt(0, 9)
+}
+
+let generation = 0;
+const numberOfGenerations = 15;
+const maxKids = 4;
+const selectionPressure = 4; // higher scores increase chance of survival
+const startingPopulation = 10;
+let geneticVariation = randomInt(-1, 1); 
+
+function creature(melanin, lungCapacity, swimming, strength, hiding, resistance, molecules, benon, overallFitness, creatureName, generationOfThisCreature, parents) {
+	this.melanin = melanin;
+	this.lungCapacity = lungCapacity;
+	this.swimming = swimming;
+	this.strength = strength;
+	this.hiding = hiding;
+	this.resistance = resistance;
+	this.molecules = molecules;
+	this.benon = benon;	
+	this.overallFitness = overallFitness;
+	this.creatureName = creatureName;
+	this.generationOfThisCreature = generationOfThisCreature;
+	this.parents = parents;
+	this.isAlive = true;
+
+	this.surviveUntilReproduction = () => {	// animate these tests later
+		// environmental challenges
+		let pressureFails = 0;
+		if (environment.sunlight > this.melanin) {
+			pressureFails += 1;
+		}
+		if (environment.oxygen > this.lungCapacity) {
+			pressureFails += 1;
+		}
+		if (environment.viscosity > this.swimming) {
+			pressureFails += 1;
+		}
+		if (environment.gravity > this.strength) {
+			pressureFails += 1;
+		}
+		if (environment.meteors > this.hiding) {
+			pressureFails += 1;
+		}
+		if (environment.electricity > this.resistance) {
+			pressureFails += 1;
+		}
+		if (environment.carbon > this.molecules) {
+			pressureFails += 1;
+		}
+		if (environment.benium > this.benon) {
+			pressureFails += 1;
+		}
+		if (pressureFails >= selectionPressure) {
+			this.isAlive = false;
+			console.log(`${this.creatureName} died.`); // explain why. pick the test with the greatest difference. // gets killed off in the loop at the bottom of the program
+		}
+		if (this.isAlive === true) {
+			console.log(`${this.creatureName} survived until reproductive age and is now looking for a mate.`);
+		}
+	}
+}
+
+let creatures = [];
+const init = () => {
+	creatures = [];
+	for (let i = 0; i < startingPopulation; i++) {
+		let melanin = randomInt(0, 9);
+		let lungCapacity = randomInt(0, 9);
+		let swimming = randomInt(0, 9);
+		let strength = randomInt(0, 9);
+		let hiding = randomInt(0, 9);
+		let resistance = randomInt(0, 9);
+		let molecules = randomInt(0, 9);
+		let benon = randomInt(0, 9);
+		let overallFitness = Math.round((melanin+lungCapacity+swimming+strength+hiding+resistance+molecules+benon)/8)
+		let creatureName = `G${generation}-${melanin}${lungCapacity}${swimming}${strength}${hiding}${resistance}${molecules}${benon}R${Math.floor(Math.random() * 100)}`;
+		let generationOfThisCreature = generation;
+		let parents = 'No parents!';
+		creatures.push(new creature(melanin, lungCapacity, swimming, strength, hiding, resistance, molecules, benon, overallFitness, creatureName, generationOfThisCreature, parents));
+	}
+}
+
+const reproduce = () => {
+	console.log('Creatures that survived until reproduction:');
+	for (let i = 0; i < creatures.length; i++) {
+		console.log(creatures[i]);
+	}
+	generation++;
+	if (creatures.length <= 1) {
+		return;
+	} 
+		// console.log(`${this.creatureName} has mated with ${mate.creatureName}`);
+	if (creatures.length % 2 != 0) { // check for odd number, kill off weakest creature.
+		overallFitnessArray = [];
+		for (let i = 0; i < creatures.length; i++) {
+			overallFitnessArray.push(creatures[i].overallFitness)
+		}
+		overallFitnessArray = overallFitnessArray.sort(function(a, b){return a - b});
+		for (let i = 0; i < creatures.length; i++) {
+			if (creatures[i].overallFitness === overallFitnessArray[0]) {
+				console.log(`${creatures[i].creatureName} couldn't find a mate and died without reproducing!`);
+				creatures.splice(i, 1);
+				break;
+			}
+		}
+	}
+	// each couple will have between 2 and 4 children
+
+	// even indexed attribute is 'dad's' and odd is 'mum's'
+	// come up with string, e.g. xxyyyxyx. x and ys are even.
+	// then go up against the list of attributes in the order i've already done it and link them up with x or y
+	// then set that attribute to x's value if x and y's value if y
+	let pregnancies = creatures.length;
+	let childrenInThisGeneration = 0;
+	console.log('Mating begins...')
+	for (let i = 0; i < pregnancies; i += 2) { // each mating couple should have between 1 and 3 kids
+		let numberOfChildren = randomInt(1, maxKids); // change max to a fertility score!!!
+		console.log(`${creatures[i].creatureName} and ${creatures[i+1].creatureName} are having ${numberOfChildren} children!`);
+		for (let j = 0; j < numberOfChildren; j++) {
+			let chromosomeString = [];
+			let xCount = 4;
+			let yCount = 4;
+			let randomXY;
+			let melanin
+			let lungCapacity
+			let swimming
+			let strength;
+			let hiding;
+			let resistance;
+			let molecules;
+			let benon;
+			let overallFitness;
+			let creatureName;
+			let generationOfThisCreature = generation;
+			let parents;
+			for (let i = 0; i < 8; i++) { // x y array (chromosomes)
+				randomXY = Math.floor(Math.random() * 2); // if 0 give x, if 1 give y
+				if (randomXY === 0 && xCount > 0) {
+					chromosomeString.push('x');
+					xCount -= 1;
+				} else if (randomXY === 1 && yCount > 0) {
+					chromosomeString.push('y');
+					yCount -= 1;
+				} else if (randomXY === 0 && xCount === 0 && yCount > 0) {
+					chromosomeString.push('y');
+					yCount -=1;
+				} else if (randomXY === 1 && yCount === 0 && xCount > 0) {
+					chromosomeString.push('x');
+					xCount -=1;
+				}
+			}
+			// console.log(chromosomeString); show DNA
+			if (chromosomeString[0] === 'x') {	// i is dad, i+1 is mum.  + randomInt(-1, 1) gives genetic variation.
+				melanin = Math.max(0, Math.min(9, (creatures[i].melanin + geneticVariation)));
+			} else {
+				melanin = Math.max(0, Math.min(9, (creatures[i+1].melanin + geneticVariation)));
+			}
+			if (chromosomeString[1] === 'x') {	// i is dad, i+1 is mum
+				lungCapacity = Math.max(0, Math.min(9, (creatures[i].lungCapacity + geneticVariation)));
+			} else {
+				lungCapacity = Math.max(0, Math.min(9, (creatures[i+1].lungCapacity + geneticVariation)));
+			}
+			if (chromosomeString[2] === 'x') {	// i is dad, i+1 is mum
+				swimming = Math.max(0, Math.min(9, (creatures[i].swimming + geneticVariation)));
+			} else {
+				swimming = Math.max(0, Math.min(9, (creatures[i+1].swimming + geneticVariation)));
+			}
+			if (chromosomeString[3] === 'x') {	// i is dad, i+1 is mum
+				strength = Math.max(0, Math.min(9, (creatures[i].strength + geneticVariation)));
+			} else {
+				strength = Math.max(0, Math.min(9, (creatures[i+1].strength + geneticVariation)));
+			}
+			if (chromosomeString[4] === 'x') {	// i is dad, i+1 is mum
+				hiding = Math.max(0, Math.min(9, (creatures[i].hiding + geneticVariation)));
+			} else {
+				hiding = Math.max(0, Math.min(9, (creatures[i+1].hiding + geneticVariation)));
+			}
+			if (chromosomeString[5] === 'x') {	// i is dad, i+1 is mum
+				resistance = Math.max(0, Math.min(9, (creatures[i].resistance + geneticVariation)));
+			} else {
+				resistance = Math.max(0, Math.min(9, (creatures[i+1].resistance + geneticVariation)));
+			}
+			if (chromosomeString[6] === 'x') {	// i is dad, i+1 is mum
+				molecules = Math.max(0, Math.min(9, (creatures[i].molecules + geneticVariation)));
+			} else {
+				molecules = Math.max(0, Math.min(9, (creatures[i+1].molecules + geneticVariation)));
+			}	
+			if (chromosomeString[7] === 'x') {	// i is dad, i+1 is mum
+				benon = Math.max(0, Math.min(9, (creatures[i].benon + geneticVariation)));
+			} else {
+				benon = Math.max(0, Math.min(9, (creatures[i+1].benon + geneticVariation)));
+			}
+			overallFitness = Math.round((melanin+lungCapacity+swimming+strength+hiding+resistance+molecules+benon)/8)
+			creatureName = `G${generation}-${melanin}${lungCapacity}${swimming}${strength}${hiding}${resistance}${molecules}${benon}R${Math.floor(Math.random() * 100)}`;
+			parents = `${creatures[i].creatureName} and ${creatures[i+1].creatureName}`;
+			creatures.push(new creature(melanin, lungCapacity, swimming, strength, hiding, resistance, molecules, benon, overallFitness, creatureName, generationOfThisCreature, parents));
+			childrenInThisGeneration += 1;
+		}
+
+	}
+	// kill off old generation
+	killingCreatures = creatures.length - childrenInThisGeneration;
+	for (let i = 0; i < killingCreatures; i++) {
+		creatures.splice(0, 1);
+	}
+	console.log('Say hello to the new generation:');
+	console.log(creatures);
+}
+
+const intro = () => {
+	console.log(`Once upon a time there were ${startingPopulation} creatures living on a planet far away.`);
+	// paint picture of the environment
+	if (environment.sunlight >= 7) {
+		console.log('This planet is very close to its star.');
+	}
+	if (environment.oxygen >= 7) {
+		console.log('This is an oxygen rich environment.');
+	}
+	if (environment.viscosity >= 7) {
+		console.log('This is a very viscous environment.');
+	}
+	if (environment.gravity >= 7) {
+		console.log('The force of gravity here is much stronger than on Earth.');
+	}
+	if (environment.meteors >= 7) {
+		console.log('The whole planet suffers heavy meteor showers');
+	}
+	if (environment.electricity >= 7) {
+		console.log('Electric storms are frequent.');
+	}
+	if (environment.carbon >= 7) {
+		console.log('The carbon levels are extremely high here.');
+	}
+	if (environment.benium >= 7) {
+		console.log('A mysterious element, Benium, is present in large quantities.');
+	}
+}
+
+const gameOver = () => {
+	if (creatures.length > 1) {
+	console.log("That's all folks!");
+	}
+}
+// *** let the games begin! ***********************************************************
+intro();
+init(); // number is how many creatures you want to start with
+// put this within another for loop, which corresponds to generations
+for (let g = 0; g < numberOfGenerations; g++) {
+	for (let i = 0; i < creatures.length; i++) {
+		creatures[i].surviveUntilReproduction();
+
+	}
+	for (let i = 0; i < creatures.length; i++) { // just easier if we make a new loop
+		if (creatures[i].isAlive === false) { // kill off the ones who didn't make it
+			creatures.splice(i, 1);
+			i = -1
+		}
+	}
+	reproduce();
+	if (creatures.length <= 1) {
+		console.log(`Life on earth has ended. It lasted ${generation} generations.`);
+		gameOver();
+		break;
+	}
+}
+gameOver();
+</script>
+</body>
+</html>
